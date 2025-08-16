@@ -31,36 +31,44 @@ def get_page(url):
     return driver
 
 
-def get_table_body(driver, table_class): 
+def get_table_body(driver, table_class, wait_rows): 
     '''Returns a list of rows or <tr> tags that contain the earthquake data. 
-    The first element of that list is the row of <th> headings of the table. '''
+    The first element of that list is the row of <th> headings of the table. 
+    Please also specify how many rows you would like the driver to wait for
+    loading using wait_rows. '''
     wait = WebDriverWait(driver, 20)
-    wait.until(lambda driver: 
-               len(driver.find_elements(
-                   By.XPATH, f"//table[@id='{table_class}']/tbody/tr")) >= 10)
+
+    wait.until(lambda d: 
+                len(d.find_elements(
+                   By.XPATH, f"//table[@id='{table_class}']/tbody/tr")) >= wait_rows and 
+                len(d.find_elements(
+                   By.XPATH, f"//table[@id='{table_class}']/tbody/tr/th")) >= 5
+    )
+    # headers = driver.find_elements(By.XPATH, 
+    #                                f"//table[@id='{table_class}']/tbody/tr/th")
+    # if headers:
+    #     for i in range(len(headers)): 
+    #         headers[i] = headers[i].text 
     
     rows = driver.find_elements(By.XPATH, f"//table[@id='{table_class}']/tbody/tr")
     return rows
 
 
-def get_table_header(driver, table_class): 
-    '''Returns a list of table headers given a table in a page. '''
-    wait = WebDriverWait(driver, 20)
-    wait.until(lambda driver: 
-               len(driver.find_elements(
-                   By.XPATH, f"//table[@id='{table_class}']/tbody/tr/th")) >= 5
-    )
-    headers = driver.find_elements(By.XPATH, 
-                                   f"//table[@id='{table_class}']/tbody/tr/th")
-    for i in range(len(headers)): 
-        headers[i] = headers[i].text 
-    return headers
+# def get_table_header(driver, table_class): 
+#     '''Returns a list of table headers given a table in a page. '''
+#     wait = WebDriverWait(driver, 20)
+#     wait.until(lambda driver: 
+               
+#     )
+    
+    
+#     return headers
 
 
 def get_data_from_row(row):
     '''Returns a list of earthquake data, given one <tr> table row. '''
     if row: 
-        cells = row.find_elements(By.TAG_NAME, "td")
+        cells = row.find_elements(By.XPATH, ".//td | .//th")
         if cells: 
             for i in range(len(cells)): 
                 cells[i] = cells[i].text
@@ -68,7 +76,9 @@ def get_data_from_row(row):
     
 
 def get_link_from_row(row):
-    pass
+    '''Returns the link in a row, given the row has one. '''
+    a = row.find_element(By.TAG_NAME, "a")
+    return a.get_attribute("href")
 
 
 # def add_coordinates(rows, table_class): 
